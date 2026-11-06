@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Anti Monetized Link
 // @namespace    https://github.com/Christianzz4603/anti-monetizedlink
-// @version      0.4.1
-// @description  Detect monetized shortlinks and show possible destination URLs for manual review.
+// @version      0.5.0
+// @description  Recognize shortlinks and inspect exposed destination URLs for manual review.
 // @author       Christianzz4603
 // @license      MIT
 // @homepageURL  https://github.com/Christianzz4603/anti-monetizedlink
@@ -21,18 +21,51 @@
 (function (root) {
   'use strict';
   root.NoAdlinkDomains = Object.freeze({
-    version: '0.4.0',
+    version: '0.5.0',
     monetized: Object.freeze([
-      'linkvertise.com','link-to.net','link-hub.net','link-target.net','link-target.org','linkvertise.net',
-      'file-link.net','direct-link.net','up-to-down.net','link-center.net','shrtfly.com','stfly.vip',
-      'shrtslug.biz','shrinkme.io','shrinkme.com','shrinkearn.com','clk.sh','cuty.io','cety.io',
-      'ouo.io','ouo.press','work.ink','workink.net','lootlabs.gg','loot-link.com','links.lootlabs.gg',
-      'lootdest.org','free-content.pro','lootdest.com','lootlinks.com','lootlinks.co','exe.io','boost.ink',
-      'adfoc.us','shorte.st','bc.vc','binbucks.com','xut.io','adshrink.it','gplinks.in','shrink.pe',
-      'paster.so','paster.gg','boostylink.com','lockr.so','lockr.net','lockr.to','rinku.pro','7mb.io',
-      'rinku.me','fly.inc','adf.ly','adfly.com','adfly.me'
+      'linkvertise.com', 'linkvertise.net', 'linkvertise.download', 'link-to.net', 'link-hub.net',
+      'link-target.net', 'link-target.org', 'file-link.net', 'direct-link.net', 'up-to-down.net',
+      'link-center.net', 'shrtfly.com', 'stfly.vip', 'shrtslug.biz', 'shrinkme.io',
+      'shrinkme.com', 'shrinkearn.com', 'clk.sh', 'cuty.io', 'cety.io',
+      'ouo.io', 'ouo.press', 'work.ink', 'workink.net', 'lootlabs.gg',
+      'loot-link.com', 'links.lootlabs.gg', 'lootdest.org', 'free-content.pro', 'lootdest.com',
+      'lootlinks.com', 'lootlinks.co', 'exe.io', 'boost.ink', 'adfoc.us',
+      'shorte.st', 'bc.vc', 'binbucks.com', 'xut.io', 'adshrink.it',
+      'gplinks.in', 'gplinks.co', 'shrink.pe', 'paster.so', 'paster.gg',
+      'boostylink.com', 'lockr.so', 'lockr.net', 'lockr.to', 'rinku.pro',
+      '7mb.io', 'rinku.me', 'fly.inc', 'adf.ly', 'adfly.com',
+      'adfly.me', 'linkbox.to', 'bstlar.com', 'linkspy.cc', '1shortlink.com',
+      '1short.io', 'cshort.org', 'revlink.pro', 'sfl.gl', 'lanza.me',
+      'kisalt.digital', 'linksly.co', 'lksfy.com', 'linkforearn.com', 'paycut.pro',
+      'mboost.me', 'sub2get.com', 'rekonise.com', 'inshortnote.com', 'linegee.net',
+      'kingofshrink.com', 'icutlink.com', 'goo.st', '2linkes.com', 'lnk2.cc',
+      'fikfok.net', 'fir3.net', 'exeygo.com', 'exeo.app',
     ]),
-    resolverHosts: Object.freeze(['linkvip.io','blitly.io','l4s.cc','pastebin.com'])
+    shortlinkHosts: Object.freeze([
+      '1ink.cc', '1minx.com', '3minx.com', '2i.cz', '2i.sk',
+      '3xpla.net', '3xplanet.com', '3xplanet.net', '3xplanet.xyz', 'adshnk.com',
+      'anchoreth.com', 'binbox.io', 'blackwidof.org', 'cpmlink.net', 'croea.com',
+      'cuttty.com', 'exe-links.com', 'guis2.com', 'gocmod.com', 'inshort.in',
+      'youlinks.in', 'adrinolinks.in', 'linkcents.com', 'nitro-link.com', 'on-scroll.com',
+      'diudemy.com', 'maqal360.com', 'headlinerpost.com', 'posterify.net', 'coinilium.net',
+      'financedoze.com', 'shortfaster.net', 'triggeredplay.com', 'rfaucet.com', 'adbtc.top',
+      'the2.link', 'forex-22.com', 'disheye.com', 'aysodamag.com', 'cryptonewssite.rf.gd',
+      '1bitspace.com', 'rotizer.net', 'enlacito.com', 'adtival.network', 'flamebook.eu.org',
+      'vosan.co', 'modcombo.com', 'o-pro.online', 'curto.win', 'infonerd.org',
+      'yitarx.com', 'misa.homes', 'mexa.sh', 'network-loop.com', 'ovabee.com',
+      'oydir.com', 'slink.bid', 'go.paylinks.cloud', 'easylink.gamingwithtr.com', 'downloader.tips',
+    ]),
+    downloadHosts: Object.freeze([
+      '1fichier.com', 'anonym.ninja', 'bowfile.com', 'buzzheavier.com', 'dailyuploads.net',
+      'dataupload.net', 'dayuploads.com', 'dbree.me', 'dddrive.me', 'desiupload.co',
+      'drop.download', 'dropgalaxy.com', 'easyupload.io', 'f2h.io', 'file-upload.net',
+      'file-upload.org', 'filedm.com', 'filemoon.sx', 'files.fm', 'filespayouts.com',
+      'gofile.download', 'gofile.io', 'hitfile.net', 'jioupload.com', 'jioupload.icu',
+      'k2s.cc', 'katfile.com', 'katfile.vip', 'krakenfiles.com', 'mediafire.com',
+      'megaup.net', 'megaupto.com', 'mirrored.to', 'mp4upload.com', 'multiup.io',
+      'rapidgator.net', 'takefile.link', 'upload.ee', 'uploadhaven.com', 'workupload.com',
+    ]),
+    resolverHosts: Object.freeze(['linkvip.io','blitly.io','l4s.cc','pastebin.com','linkvertise.com','linkvertise.net','linkvertise.download'])
   });
 })(globalThis);
 
@@ -77,16 +110,17 @@
 
 (() => {
   'use strict';
-  const VERSION = '0.4.1';
+  const VERSION = '0.5.0';
   const STORE = 'no-adlink-settings-v3';
   const DEFAULTS = { cosmetic: true, popups: true, preview: true, debug: false };
   let settings = { ...DEFAULTS };
   try { settings = { ...DEFAULTS, ...JSON.parse(localStorage.getItem(STORE) || '{}') }; } catch {}
   const log = (...args) => settings.debug && console.info('[No Adlink]', ...args);
   const registry = globalThis.NoAdlinkDomains || { monetized: [], resolverHosts: [] };
-  const matchesDomain = list => list.some(d => location.hostname === d || location.hostname.endsWith('.' + d));
-  const isMonetizedHost = host => registry.monetized.some(d => host === d || host.endsWith('.' + d));
-  const isKnownAdlink = matchesDomain(registry.monetized);
+  const matchesDomain = (list, host = location.hostname) => (list || []).some(d => host === d || host.endsWith('.' + d));
+  const isMonetizedHost = host => matchesDomain(registry.monetized, host);
+  const isKnownShortlinkHost = host => isMonetizedHost(host) || matchesDomain(registry.shortlinkHosts, host);
+  const isKnownAdlink = isKnownShortlinkHost(location.hostname);
 
   const AD_SELECTORS = [
     'ins.adsbygoogle','.adsbygoogle','[data-ad-client]','[id^="google_ads"]',
@@ -138,40 +172,94 @@
     try { window.open = state.original; delete window.__noAdlinkPopupGuard; } catch {}
   }
 
-  const PARAMS = ['url','u','target','destination','dest','redirect','redirect_url','redirect_uri','to','link','out','r','data'];
+  const PARAMS = ['url','u','target','destination','dest','redirect','redirect_url','redirect_uri','redirecturl','redirectto','destination_url','destinationUrl','dest_url','to','link','out','r','data','continue','return','returnUrl','return_url','next','encoded','encoded_url','target_url','goto','go'];
   function decodeBase64(value) {
     try {
-      const s = value.replace(/-/g, '+').replace(/_/g, '/');
+      let s = String(value || '').trim().replace(/^base64,/i, '').replace(/-/g, '+').replace(/_/g, '/').replace(/\s/g, '');
+      if (!s || s.length > 4096 || !/^[A-Za-z0-9+/]*={0,2}$/.test(s)) return '';
       const decoded = atob(s + '='.repeat((4 - s.length % 4) % 4));
-      return decoded;
+      try {
+        const bytes = Uint8Array.from(decoded, c => c.charCodeAt(0));
+        return new TextDecoder('utf-8', { fatal: false }).decode(bytes);
+      } catch {
+        try { return decodeURIComponent(Array.from(decoded, c => '%' + c.charCodeAt(0).toString(16).padStart(2, '0')).join('')); }
+        catch { return decoded; }
+      }
     } catch { return ''; }
+  }
+  function normalizeText(value) {
+    return String(value || '').trim()
+      .replace(/^['"`]+|['"`]+$/g, '')
+      .replace(/&amp;/gi, '&').replace(/&#38;/g, '&').replace(/&colon;/gi, ':')
+      .replaceAll('\\/', '/').replaceAll('\\u002f', '/').replaceAll('\\u003a', ':')
+      .replaceAll('\\u0026', '&').replaceAll('\\u003d', '=')
+      .replaceAll('\\x3a', ':').replaceAll('\\x2f', '/');
   }
   function validHttp(raw) {
     try {
-      const u = new URL(raw, location.href);
-      return /^https?:$/.test(u.protocol) && u.hostname !== location.hostname ? u : null;
+      const value = normalizeText(raw);
+      if (!value || value.length > 4096) return null;
+      const u = new URL(value, location.href);
+      if (!/^https?:$/.test(u.protocol) || !u.hostname || u.hostname === location.hostname) return null;
+      if (u.username || u.password) return null;
+      if (/^(localhost|.*\.localhost|.*\.local)$/i.test(u.hostname)) return null;
+      return u;
     } catch { return null; }
   }
-  function unwrap(raw) {
-    if (!raw) return null;
-    let value = String(raw).trim();
-    for (let i = 0; i < 3; i++) {
-      try { const next = decodeURIComponent(value.replace(/\+/g, '%20')); if (next === value) break; value = next; } catch { break; }
+  function unwrap(raw, depth = 0) {
+    if (!raw || depth > 3) return null;
+    let value = normalizeText(raw);
+    if (!value) return null;
+    for (let i = 0; i < 4; i++) {
+      try {
+        const next = decodeURIComponent(value);
+        if (next === value) break;
+        value = normalizeText(next);
+      } catch { break; }
     }
-    let found = validHttp(value);
-    if (found) return found;
+    // JSON-encoded wrappers are common in page data and redirect parameters.
+    if (value[0] === '{' || value[0] === '[' || value[0] === '"') {
+      try {
+        const parsed = JSON.parse(value);
+        if (typeof parsed === 'string') return unwrap(parsed, depth + 1);
+        if (parsed && typeof parsed === 'object') {
+          for (const key of PARAMS) if (typeof parsed[key] === 'string') {
+            const nested = unwrap(parsed[key], depth + 1);
+            if (nested) return nested;
+          }
+        }
+      } catch {}
+    }
+    const direct = validHttp(value);
+    if (direct) {
+      // Prefer the final URL nested inside a known wrapper instead of returning
+      // another monetized shortlink as though it were the destination.
+      for (const key of PARAMS) {
+        const nestedValue = direct.searchParams.get(key);
+        if (nestedValue) {
+          const nested = unwrap(nestedValue, depth + 1);
+          if (nested) return nested;
+        }
+      }
+      return isKnownShortlinkHost(direct.hostname) ? null : direct;
+    }
     const b64 = decodeBase64(value);
-    found = validHttp(b64);
-    return found;
+    if (b64 && b64 !== value) {
+      const decoded = unwrap(b64, depth + 1);
+      if (decoded) return decoded;
+    }
+    const literal = value.match(/https?:\/\/[^\s"'<>\\`]{8,1500}/i);
+    if (literal) return validHttp(literal[0].replace(/[),.;\]}]+$/, ''));
+    return null;
   }
   function extractCandidates() {
     const out = new Map();
-    const MAX_CANDIDATES = 60;
-    const MAX_SCAN_TEXT = 64000;
+    const MAX_CANDIDATES = 80;
+    const MAX_SCAN_TEXT = 48000;
     const add = (value, source, confidence = 'medium') => {
       if (!value || out.size >= MAX_CANDIDATES) return;
       const u = unwrap(value);
-      if (!u || isMonetizedHost(u.hostname)) return;
+      if (!u || isKnownShortlinkHost(u.hostname)) return;
       const previous = out.get(u.href);
       const rank = confidence === 'high' ? 3 : confidence === 'medium' ? 2 : 1;
       const oldRank = previous ? (previous.confidence === 'high' ? 3 : previous.confidence === 'medium' ? 2 : 1) : 0;
@@ -200,6 +288,44 @@
       if (/^https?:\/\/\S+$/i.test(raw)) add(raw, 'Plain-text destination', 'high');
     }
 
+    // Hash fragments sometimes carry the same redirect parameters as the query.
+    if (current.hash && current.hash.length < 4096) {
+      const hashText = current.hash.replace(/^#\/?/, '');
+      try {
+        const hashParams = new URLSearchParams(hashText.includes('=') ? hashText : '');
+        for (const key of PARAMS) {
+          const value = hashParams.get(key);
+          if (value) add(value, 'URL fragment parameter: ' + key, 'high');
+        }
+      } catch {}
+      add(hashText, 'Encoded URL fragment', 'low');
+    }
+
+    // Structured JSON blobs can expose a destination without running page code.
+    const jsonScripts = document.querySelectorAll('script[type="application/json"],script[type="application/ld+json"]');
+    for (let i = 0; i < jsonScripts.length && i < 12 && out.size < MAX_CANDIDATES; i++) {
+      const raw = (jsonScripts[i].textContent || '').slice(0, 24000);
+      if (!raw) continue;
+      try {
+        const parsed = JSON.parse(raw);
+        const walk = (value, depth = 0) => {
+          if (!value || depth > 5 || out.size >= MAX_CANDIDATES) return;
+          if (typeof value === 'string') {
+            if (/^https?:|^https?%3a/i.test(value) || /https?:\/\//i.test(value)) add(value, 'Structured JSON URL', 'medium');
+            return;
+          }
+          if (Array.isArray(value)) { for (const item of value.slice(0, 40)) walk(item, depth + 1); return; }
+          if (typeof value === 'object') {
+            for (const [key, child] of Object.entries(value).slice(0, 60)) {
+              if (PARAMS.includes(key) || /^(href|src|contentUrl|embedUrl|sameAs)$/i.test(key)) walk(child, depth + 1);
+              else if (child && typeof child === 'object') walk(child, depth + 1);
+            }
+          }
+        };
+        walk(parsed);
+      } catch {}
+    }
+
     // Meta refresh is a common, directly-declared redirect format.
     for (const meta of document.querySelectorAll('meta[http-equiv]')) {
       if ((meta.httpEquiv || '').toLowerCase() !== 'refresh') continue;
@@ -208,17 +334,17 @@
     }
 
     // Scan a bounded set of URL-like data attributes and named hidden fields.
-    const nodes = document.querySelectorAll('[data-url],[data-href],[data-destination],[data-redirect],[data-target],input[type="hidden"]');
-    for (let i = 0; i < nodes.length && i < 500 && out.size < MAX_CANDIDATES; i++) {
+    const nodes = document.querySelectorAll('[data-url],[data-href],[data-link],[data-destination],[data-destination-url],[data-redirect],[data-redirect-url],[data-target],[data-original-url],input[type="hidden"]');
+    for (let i = 0; i < nodes.length && i < 700 && out.size < MAX_CANDIDATES; i++) {
       const node = nodes[i];
       if (node.matches('input[type="hidden"]')) {
         const name = (node.name || node.id || '').toLowerCase();
-        if (!/(^|[_-])(url|link|target|dest|destination|redirect|out)([_-]|$)/.test(name)) continue;
+        if (!/(^|[_-])(url|link|target|dest|destination|redirect|out|continue|return|next|goto)([_-]|$)/.test(name)) continue;
         if (/(csrf|token|auth|session|nonce|signature|password)/i.test(name)) continue;
         add(node.value, 'Named hidden URL field: ' + name, 'medium');
         continue;
       }
-      for (const attr of ['data-url', 'data-href', 'data-destination', 'data-redirect', 'data-target']) {
+      for (const attr of ['data-url', 'data-href', 'data-link', 'data-destination', 'data-destination-url', 'data-redirect', 'data-redirect-url', 'data-target', 'data-original-url']) {
         const value = node.getAttribute(attr);
         if (value) add(value, 'Element ' + attr, 'medium');
       }
@@ -227,7 +353,7 @@
     // Visible links are choices, not automatic redirects. On other pages only
     // scan a small subset to avoid turning ordinary pages into link catalogs.
     const anchors = document.querySelectorAll('a[href]');
-    const anchorLimit = isKnownAdlink ? 250 : 80;
+    const anchorLimit = isKnownAdlink ? 300 : 100;
     for (let i = 0; i < anchors.length && i < anchorLimit && out.size < MAX_CANDIDATES; i++) {
       const anchor = anchors[i];
       if (!anchor.isConnected || !anchor.getClientRects().length) continue;
@@ -247,7 +373,7 @@
     // Parse URL literals from a bounded number of inline scripts. This is a
     // read-only text scan; page code is never evaluated and no requests are made.
     const scripts = document.querySelectorAll('script:not([src])');
-    for (let i = 0; i < scripts.length && i < 20 && out.size < MAX_CANDIDATES; i++) {
+    for (let i = 0; i < scripts.length && i < 24 && out.size < MAX_CANDIDATES; i++) {
       const text = (scripts[i].textContent || '').slice(0, MAX_SCAN_TEXT);
       if (!text || !/(https?:|https?\\x3a|https?\\u003a)/i.test(text)) continue;
       const normalized = text.replace(/\\\//g, '/').replace(/\\u0026/gi, '&').replace(/\\u003d/gi, '=');
@@ -287,20 +413,41 @@
     panel.hidden = true;
     panel.style.cssText = 'width:min(340px,calc(100vw - 36px));max-height:55vh;overflow:auto;margin-bottom:8px;padding:14px;border:1px solid #454b5b;border-radius:12px;background:#171923;box-shadow:0 8px 30px #0009';
     const heading = document.createElement('strong');
-    heading.textContent = 'No Adlink ' + VERSION + (isKnownAdlink ? ' · adlink detected' : '');
+    heading.textContent = 'No Adlink ' + VERSION + (isKnownAdlink ? ' · shortlink host detected' : '');
     panel.appendChild(heading);
-    const candidates = extractCandidates();
-    if (candidates.length) {
-      const label = document.createElement('p'); label.textContent = 'Possible destinations. Check the domain before opening.'; panel.appendChild(label);
-      candidates.slice(0, 12).forEach(item => {
-        const row = document.createElement('div'); row.style.cssText = 'margin:8px 0;padding:8px;background:#252a38;border-radius:8px;overflow-wrap:anywhere';
-        const source = document.createElement('small'); source.textContent = item.source + ' · ' + item.confidence + ' confidence'; source.style.display = 'block';
-        const link = document.createElement('a'); link.href = item.url; link.textContent = item.url; link.target = '_blank'; link.rel = 'noopener noreferrer'; link.style.color = '#b9c7ff';
-        row.append(source, link); panel.appendChild(row);
-      });
-    } else {
-      const empty = document.createElement('p'); empty.textContent = 'No transparent destination found on this page.'; panel.appendChild(empty);
-    }
+    const candidateBox = document.createElement('div');
+    panel.appendChild(candidateBox);
+    const renderCandidates = () => {
+      candidateBox.replaceChildren();
+      const candidates = extractCandidates();
+      if (candidates.length) {
+        const label = document.createElement('p');
+        label.textContent = 'Possible destinations. Check the domain before opening.';
+        candidateBox.appendChild(label);
+        candidates.slice(0, 12).forEach(item => {
+          const row = document.createElement('div');
+          row.style.cssText = 'margin:8px 0;padding:8px;background:#252a38;border-radius:8px;overflow-wrap:anywhere';
+          const source = document.createElement('small');
+          source.textContent = item.source + ' · ' + item.confidence + ' confidence';
+          source.style.display = 'block';
+          const link = document.createElement('a');
+          link.href = item.url; link.textContent = item.url; link.target = '_blank';
+          link.rel = 'noopener noreferrer'; link.style.color = '#b9c7ff';
+          row.append(source, link); candidateBox.appendChild(row);
+        });
+      } else {
+        const empty = document.createElement('p');
+        empty.textContent = 'No transparent destination found on this page.';
+        candidateBox.appendChild(empty);
+      }
+      return candidates.length;
+    };
+    const initialCount = renderCandidates();
+    const rescan = document.createElement('button');
+    rescan.type = 'button'; rescan.textContent = 'Rescan page';
+    rescan.style.cssText = 'margin:8px 0;padding:7px 10px;border:1px solid #68718a;border-radius:7px;background:#252a38;color:#f4f6ff';
+    rescan.addEventListener('click', renderCandidates);
+    panel.appendChild(rescan);
     const note = document.createElement('small');
     note.textContent = 'Recognizing a domain is not the same as resolving it. CAPTCHA, account checks, paid access and server-side verification are not bypassed.';
     note.style.cssText = 'display:block;color:#b8bdca;margin-top:10px';
@@ -318,7 +465,7 @@
     toggle.addEventListener('click', () => { panel.hidden = !panel.hidden; });
     root.append(panel, toggle); document.documentElement.appendChild(root);
     if (!settings.preview) panel.hidden = true;
-    else if (candidates.length || isKnownAdlink) panel.hidden = false;
+    else if (initialCount || isKnownAdlink) panel.hidden = false;
   }
   function applySettings() {
     settings.cosmetic ? installCosmetic() : removeCosmetic();
