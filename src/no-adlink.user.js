@@ -6,8 +6,6 @@
 // @author       Christianzz4603
 // @match        *://*/*
 // @run-at       document-start
-// @require      https://raw.githubusercontent.com/Christianzz4603/anti-monetizedlink/main/src/domain-registry.js
-// @require      https://raw.githubusercontent.com/Christianzz4603/anti-monetizedlink/main/src/resolvers/work-ink.js
 // @updateURL    https://raw.githubusercontent.com/Christianzz4603/anti-monetizedlink/main/src/no-adlink.user.js
 // @downloadURL  https://raw.githubusercontent.com/Christianzz4603/anti-monetizedlink/main/src/no-adlink.user.js
 // @grant        none
