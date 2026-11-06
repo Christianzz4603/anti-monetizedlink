@@ -3,7 +3,7 @@
 (function (root) {
   'use strict';
   root.NoAdlinkDomains = Object.freeze({
-    version: '0.3.0',
+    version: '0.4.0',
     monetized: Object.freeze([
       'linkvertise.com','link-to.net','link-hub.net','link-target.net','link-target.org','linkvertise.net',
       'file-link.net','direct-link.net','up-to-down.net','link-center.net','shrtfly.com','stfly.vip',

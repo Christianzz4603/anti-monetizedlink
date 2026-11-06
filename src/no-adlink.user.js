@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Anti Monetized Link
 // @namespace    https://github.com/Christianzz4603/anti-monetizedlink
-// @version      0.3.2
+// @version      0.4.0
 // @description  Monetized shortlink recognition, safe destination extraction, ad cleanup and popup protection.
 // @author       Christianzz4603
 // @match        *://*/*
@@ -17,7 +17,7 @@
 (function (root) {
   'use strict';
   root.NoAdlinkDomains = Object.freeze({
-    version: '0.3.0',
+    version: '0.4.0',
     monetized: Object.freeze([
       'linkvertise.com','link-to.net','link-hub.net','link-target.net','link-target.org','linkvertise.net',
       'file-link.net','direct-link.net','up-to-down.net','link-center.net','shrtfly.com','stfly.vip',
@@ -73,7 +73,7 @@
 
 (() => {
   'use strict';
-  const VERSION = '0.3.2';
+  const VERSION = '0.4.0';
   const STORE = 'no-adlink-settings-v3';
   const DEFAULTS = { cosmetic: true, popups: true, preview: true, debug: false };
   let settings = { ...DEFAULTS };
@@ -162,47 +162,112 @@
   }
   function extractCandidates() {
     const out = new Map();
-    const add = (value, source) => {
+    const MAX_CANDIDATES = 60;
+    const MAX_SCAN_TEXT = 64000;
+    const add = (value, source, confidence = 'medium') => {
+      if (!value || out.size >= MAX_CANDIDATES) return;
       const u = unwrap(value);
-      if (u && !out.has(u.href)) out.set(u.href, source);
+      if (!u || isMonetizedHost(u.hostname)) return;
+      const previous = out.get(u.href);
+      const rank = confidence === 'high' ? 3 : confidence === 'medium' ? 2 : 1;
+      const oldRank = previous ? (previous.confidence === 'high' ? 3 : previous.confidence === 'medium' ? 2 : 1) : 0;
+      if (!previous || rank > oldRank) out.set(u.href, { url: u.href, source, confidence });
     };
     const current = new URL(location.href);
-    for (const key of PARAMS) add(current.searchParams.get(key), 'URL parameter: ' + key);
 
-    // Transparent host-specific URL wrappers documented by their page format.
-    if (/^(linkvip|blitly)\.io$/.test(location.hostname)) add(current.searchParams.get('url'), 'Link wrapper parameter');
+    // Explicit redirect parameters are the strongest and cheapest signal.
+    for (const key of PARAMS) {
+      const value = current.searchParams.get(key);
+      if (value) add(value, 'URL parameter: ' + key, 'high');
+    }
+
+    // Known transparent URL wrappers.
+    if (/^(linkvip|blitly)\.io$/.test(location.hostname)) add(current.searchParams.get('url'), 'Link wrapper parameter', 'high');
     if (location.hostname === 'l4s.cc') {
-      const match = location.pathname.match(/\/(?:q\/e\/)?(?:1f|482)\/([A-Za-z0-9_=-]+)/);
+      const match = current.pathname.match(/\/(?:q\/e\/)?(?:1f|482)\/([A-Za-z0-9_=-]{8,700})/);
       if (match) {
         const decoded = decodeBase64(match[1]);
-        add(decoded, 'Encoded path destination');
-        try { add(new URL(decoded).searchParams.get('url'), 'Nested URL parameter'); } catch {}
+        add(decoded, 'Encoded path destination', 'high');
+        try { add(new URL(decoded).searchParams.get('url'), 'Nested URL parameter', 'high'); } catch {}
       }
     }
-    if (location.hostname === 'pastebin.com' && location.pathname.startsWith('/raw/')) {
+    if (location.hostname === 'pastebin.com' && current.pathname.startsWith('/raw/')) {
       const raw = (document.body?.innerText || '').trim();
-      if (/^https?:\/\/\S+$/i.test(raw)) add(raw, 'Plain-text destination');
+      if (/^https?:\/\/\S+$/i.test(raw)) add(raw, 'Plain-text destination', 'high');
     }
 
-    // On known adlink hosts, expose outbound page links as choices instead of
-    // guessing which hidden/decoy link is the real destination.
-    if (isKnownAdlink) {
-      document.querySelectorAll('a[href]').forEach(a => {
-        const u = validHttp(a.href);
-        if (u && !isMonetizedHost(u.hostname) && a.getClientRects().length) out.set(u.href, 'Page link: ' + (a.textContent.trim().slice(0, 50) || 'untitled'));
-      });
+    // Meta refresh is a common, directly-declared redirect format.
+    for (const meta of document.querySelectorAll('meta[http-equiv]')) {
+      if ((meta.httpEquiv || '').toLowerCase() !== 'refresh') continue;
+      const match = (meta.content || '').match(/(?:^|;)\s*url\s*=\s*['"]?([^'"]+)/i);
+      if (match) add(match[1].trim(), 'Meta refresh destination', 'high');
+    }
+
+    // Scan a bounded set of URL-like data attributes and named hidden fields.
+    const nodes = document.querySelectorAll('[data-url],[data-href],[data-destination],[data-redirect],[data-target],input[type="hidden"]');
+    for (let i = 0; i < nodes.length && i < 500 && out.size < MAX_CANDIDATES; i++) {
+      const node = nodes[i];
+      if (node.matches('input[type="hidden"]')) {
+        const name = (node.name || node.id || '').toLowerCase();
+        if (!/(^|[_-])(url|link|target|dest|destination|redirect|out)([_-]|$)/.test(name)) continue;
+        if (/(csrf|token|auth|session|nonce|signature|password)/i.test(name)) continue;
+        add(node.value, 'Named hidden URL field: ' + name, 'medium');
+        continue;
+      }
+      for (const attr of ['data-url', 'data-href', 'data-destination', 'data-redirect', 'data-target']) {
+        const value = node.getAttribute(attr);
+        if (value) add(value, 'Element ' + attr, 'medium');
+      }
+    }
+
+    // Visible links are choices, not automatic redirects. On other pages only
+    // scan a small subset to avoid turning ordinary pages into link catalogs.
+    const anchors = document.querySelectorAll('a[href]');
+    const anchorLimit = isKnownAdlink ? 250 : 80;
+    for (let i = 0; i < anchors.length && i < anchorLimit && out.size < MAX_CANDIDATES; i++) {
+      const anchor = anchors[i];
+      if (!anchor.isConnected || !anchor.getClientRects().length) continue;
+      const u = validHttp(anchor.href);
+      if (u && !isMonetizedHost(u.hostname)) {
+        add(u.href, 'Visible page link: ' + (anchor.textContent.trim().slice(0, 45) || 'untitled'), isKnownAdlink ? 'medium' : 'low');
+      }
+    }
+
+    // Decode plausible Base64 path segments without scanning or executing scripts.
+    for (const segment of current.pathname.split('/').slice(1, 8)) {
+      if (segment.length < 16 || segment.length > 700 || !/^[A-Za-z0-9_-]+={0,2}$/.test(segment)) continue;
+      const decoded = decodeBase64(segment);
+      if (/^https?:\/\//i.test(decoded)) add(decoded, 'Decoded path segment', 'medium');
+    }
+
+    // Parse URL literals from a bounded number of inline scripts. This is a
+    // read-only text scan; page code is never evaluated and no requests are made.
+    const scripts = document.querySelectorAll('script:not([src])');
+    for (let i = 0; i < scripts.length && i < 20 && out.size < MAX_CANDIDATES; i++) {
+      const text = (scripts[i].textContent || '').slice(0, MAX_SCAN_TEXT);
+      if (!text || !/(https?:|https?\\x3a|https?\\u003a)/i.test(text)) continue;
+      const normalized = text.replace(/\\\//g, '/').replace(/\\u0026/gi, '&').replace(/\\u003d/gi, '=');
+      const urls = normalized.match(/https?:\/\/[^\s"'<>\\`]{8,700}/gi);
+      if (!urls) continue;
+      for (let j = 0; j < urls.length && out.size < MAX_CANDIDATES; j++) {
+        add(urls[j].replace(/[),.;\]}]+$/, ''), 'Inline script URL literal', 'low');
+      }
     }
 
     // Run isolated, transparent host resolvers when they are loaded.
     const workInkResolver = globalThis.NoAdlinkResolvers?.workInk;
-    if (typeof workInkResolver === 'function') {
+    if (typeof workInkResolver === 'function' && out.size < MAX_CANDIDATES) {
       try {
         for (const item of workInkResolver({ document, location, validHttp, isMonetizedHost })) {
-          if (item?.url && !out.has(item.url)) out.set(item.url, item.source || 'Work.ink visible destination');
+          if (item?.url) add(item.url, item.source || 'Work.ink visible destination', 'medium');
         }
       } catch (e) { log('Work.ink resolver error', e); }
     }
-    return [...out.entries()].map(([url, source]) => ({ url, source }));
+
+    return [...out.values()].sort((a, b) => {
+      const score = x => x.confidence === 'high' ? 3 : x.confidence === 'medium' ? 2 : 1;
+      return score(b) - score(a);
+    }).slice(0, 12);
   }
 
   function showPanel() {
@@ -225,7 +290,7 @@
       const label = document.createElement('p'); label.textContent = 'Possible destinations. Check the domain before opening.'; panel.appendChild(label);
       candidates.slice(0, 12).forEach(item => {
         const row = document.createElement('div'); row.style.cssText = 'margin:8px 0;padding:8px;background:#252a38;border-radius:8px;overflow-wrap:anywhere';
-        const source = document.createElement('small'); source.textContent = item.source; source.style.display = 'block';
+        const source = document.createElement('small'); source.textContent = item.source + ' · ' + item.confidence + ' confidence'; source.style.display = 'block';
         const link = document.createElement('a'); link.href = item.url; link.textContent = item.url; link.target = '_blank'; link.rel = 'noopener noreferrer'; link.style.color = '#b9c7ff';
         row.append(source, link); panel.appendChild(row);
       });

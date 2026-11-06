@@ -1,18 +1,15 @@
 # Anti Monetized Link
 
-A single-link Tampermonkey userscript for Firefox and compatible userscript managers.
+A lightweight, single-file Tampermonkey userscript for Firefox and compatible userscript managers. It recognizes known monetized shortlink hosts and surfaces destination candidates for manual review.
 
-## v0.3.2
+## v0.4.0
 
-- Remote update and download metadata for automatic script updates.
-- Bundled domain registry for known monetized shortlink services.
-- Generic transparent URL extraction from common redirect parameters and Base64 wrappers.
-- Initial host-specific extraction for LinkVIP/Blitly URL wrappers, L4S encoded paths, and plain-URL Pastebin raw pages.
-- On recognized adlink hosts, presents visible outbound page links as choices instead of blindly redirecting.
-- Includes an isolated Work.ink resolver that reads visible outbound links and destination data attributes for user review.
-- Fixes outbound-link filtering so it checks each candidate destination host, not the current page host.
-- Cosmetic ad-element cleanup, popup guard, and a floating settings panel.
-- No third-party bypass API receives the user's current URL.
+- Adds bounded generic extraction for meta-refresh redirects, named URL data attributes, URL-like hidden fields, encoded path segments, and URL literals in inline scripts.
+- Ranks candidates by confidence (high, medium, low) and displays the strongest matches first.
+- Uses strict candidate, DOM-node, script-count, and per-script text limits to keep scans predictable on lower-memory phones.
+- Keeps extraction read-only: it does not execute page scripts, auto-click offers, silently navigate, or make third-party bypass requests.
+- Retains the bundled Work.ink visible-destination resolver and existing host-specific URL formats.
+- Keeps the installable userscript self-contained with no `@require` dependencies.
 
 ## Install
 
@@ -20,18 +17,16 @@ Import this raw userscript URL in Tampermonkey:
 
 `https://raw.githubusercontent.com/Christianzz4603/anti-monetizedlink/main/src/no-adlink.user.js`
 
-The userscript is fully self-contained: the domain registry and Work.ink resolver are bundled into the same `.user.js` file. Tampermonkey only needs this one URL.
+The domain registry and Work.ink resolver are bundled into that one file.
 
-## Work.ink source review
+## Extraction behavior
 
-The Greasy Fork script [Work.ink bypass by kxBypass](https://greasyfork.org/en/scripts/554796-work-ink-bypass-by-kxbypass/code) was reviewed as a behavioral reference. Its listing declares no license, so its source code was not copied. Anti Monetized Link uses an independent, read-only resolver: it surfaces visible destination candidates for manual review and does not auto-click skip/offer controls, rewrite page contents, spoof ad-related fetches, or remove access offers.
+The extractor checks explicit redirect parameters first, then known wrapper formats, meta refresh, URL-like data attributes and named hidden fields, visible outbound links, plausible Base64 path segments, and a bounded sample of inline-script URL literals. It deduplicates destinations and shows at most 12 candidates. High confidence means the destination was explicitly declared by a URL parameter or redirect field; medium means it was found in page data; low means it was inferred from a visible link or inline script. Confidence is a heuristic, not a safety guarantee. Check the destination hostname before opening it.
 
 ## Important limits
 
-The supplied domain file contains three different categories: 54 known monetized services, 128 additional domains from public bypass lists, and 1,454 general shortener domains. General shorteners are not necessarily ad-supported, and a domain match is not proof that a resolver exists. The initial registry focuses on known monetized services; suspicious adult-content domains are deliberately not treated as destinations to resolve.
-
-A userscript cannot provide reliable browser-level network filtering or intercept every server-side redirect. It also does not defeat CAPTCHA, authentication, license checks, paid access, or server-side verification. Use a dedicated Firefox content blocker for network-level ad blocking.
+A recognized domain does not guarantee a resolver exists. Generic extraction cannot reliably handle every service, server-side redirect, CAPTCHA, login, payment, license check, or server-side verification. It does not bypass those controls. A userscript also cannot provide browser-level network filtering; use a reputable content blocker for that.
 
 ## Resolver development
 
-Add each host-specific resolver as an isolated module during development, then bundle it into the single installable userscript. Prefer transparent URL extraction and user confirmation. Do not auto-click hidden controls, skip human verification, or trust arbitrary page scripts.
+Add host-specific resolvers as isolated, read-only modules during development, then bundle them into the single installable userscript. Do not auto-click hidden controls or treat arbitrary page scripts as trusted instructions.
