@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name         No Adlink
 // @namespace    https://github.com/Christianzz4603/no-adlink-userscript
-// @version      0.3.0
-// @description  Shortlink recognition, safe destination extraction, ad cleanup and popup protection.
+// @version      0.3.1
+// @description  Monetized shortlink recognition, safe destination extraction, ad cleanup and popup protection.
 // @author       Christianzz4603
 // @match        *://*/*
 // @run-at       document-start
 // @require      https://raw.githubusercontent.com/Christianzz4603/no-adlink-userscript/main/src/domain-registry.js
+// @require      https://raw.githubusercontent.com/Christianzz4603/no-adlink-userscript/main/src/resolvers/work-ink.js
 // @updateURL    https://raw.githubusercontent.com/Christianzz4603/no-adlink-userscript/main/src/no-adlink.user.js
 // @downloadURL  https://raw.githubusercontent.com/Christianzz4603/no-adlink-userscript/main/src/no-adlink.user.js
 // @grant        none
@@ -14,7 +15,7 @@
 
 (() => {
   'use strict';
-  const VERSION = '0.3.0';
+  const VERSION = '0.3.1';
   const STORE = 'no-adlink-settings-v3';
   const DEFAULTS = { cosmetic: true, popups: true, preview: true, debug: false };
   let settings = { ...DEFAULTS };
@@ -22,6 +23,7 @@
   const log = (...args) => settings.debug && console.info('[No Adlink]', ...args);
   const registry = globalThis.NoAdlinkDomains || { monetized: [], resolverHosts: [] };
   const matchesDomain = list => list.some(d => location.hostname === d || location.hostname.endsWith('.' + d));
+  const isMonetizedHost = host => registry.monetized.some(d => host === d || host.endsWith('.' + d));
   const isKnownAdlink = matchesDomain(registry.monetized);
 
   const AD_SELECTORS = [
@@ -129,8 +131,18 @@
     if (isKnownAdlink) {
       document.querySelectorAll('a[href]').forEach(a => {
         const u = validHttp(a.href);
-        if (u && !matchesDomain(registry.monetized)) out.set(u.href, 'Page link: ' + (a.textContent.trim().slice(0, 50) || 'untitled'));
+        if (u && !isMonetizedHost(u.hostname) && a.getClientRects().length) out.set(u.href, 'Page link: ' + (a.textContent.trim().slice(0, 50) || 'untitled'));
       });
+    }
+
+    // Run isolated, transparent host resolvers when they are loaded.
+    const workInkResolver = globalThis.NoAdlinkResolvers?.workInk;
+    if (typeof workInkResolver === 'function') {
+      try {
+        for (const item of workInkResolver({ document, location, validHttp, isMonetizedHost })) {
+          if (item?.url && !out.has(item.url)) out.set(item.url, item.source || 'Work.ink visible destination');
+        }
+      } catch (e) { log('Work.ink resolver error', e); }
     }
     return [...out.entries()].map(([url, source]) => ({ url, source }));
   }
