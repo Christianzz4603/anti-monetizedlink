@@ -1,40 +1,31 @@
 # No Adlink
 
-A single-file userscript for Firefox + Tampermonkey and compatible userscript managers.
+A single-link Tampermonkey userscript for Firefox and compatible userscript managers.
 
-## Features in 0.2.0
+## v0.3.0
 
-- **Page-level ad cleanup:** hides/removes a conservative set of common ad containers and known ad-network frames.
-- **Popup guard:** blocks script-created windows unless the browser reports an active user gesture.
-- **Shortlink destination preview:** recognizes common URL parameters and a base64 URL in the `r` parameter, then asks before opening.
-- **Floating settings panel:** toggle each feature on a page; settings are stored locally.
-- **No external bypass API:** the current page URL is not sent to a third-party resolver service.
+- Remote update and download metadata for automatic script updates.
+- Separate domain registry for known monetized shortlink services.
+- Generic transparent URL extraction from common redirect parameters and Base64 wrappers.
+- Initial host-specific extraction for LinkVIP/Blitly URL wrappers, L4S encoded paths, and plain-URL Pastebin raw pages.
+- On recognized adlink hosts, presents outbound page links as choices instead of blindly redirecting.
+- Cosmetic ad-element cleanup, popup guard, and a floating settings panel.
+- No third-party bypass API receives the user's current URL.
 
-## Install in Firefox
+## Install
 
-1. Install Tampermonkey (or another compatible userscript manager) in Firefox.
-2. Open `src/no-adlink.user.js` on GitHub.
-3. Open the **Raw** version and install it in the userscript manager.
-4. Visit a page and use the **NL** button in the bottom-right corner to configure features.
+Import this raw userscript URL in Tampermonkey:
 
-## Important limitations
+`https://raw.githubusercontent.com/Christianzz4603/no-adlink-userscript/main/src/no-adlink.user.js`
 
-This is a userscript, not a full WebExtension. A userscript cannot reliably block network requests before they happen, filter every ad script, or control all browser-level redirects. The cosmetic filter only hides/removes selected page elements. For real network-level ad blocking in Firefox, use a dedicated content-blocking extension such as uBlock Origin alongside this script.
+The script uses a small companion registry loaded with `@require`; both files are hosted in this repository.
 
-Popup protection is best-effort: Firefox's built-in popup protection remains important, and sites may use navigation techniques other than `window.open()`.
+## Important limits
 
-Shortlink handling is intentionally conservative. It only unwraps transparent URL parameters and previews the result. It does not defeat CAPTCHAs, authentication, license checks, paid access, or server-side verification. Some ad-shortener flows require site-specific handling and cannot be safely generalized.
+The supplied domain file contains three different categories: 54 known monetized services, 128 additional domains from public bypass lists, and 1,454 general shortener domains. General shorteners are not necessarily ad-supported, and a domain match is not proof that a resolver exists. The initial registry focuses on known monetized services; suspicious adult-content domains are deliberately not treated as destinations to resolve.
 
-## Project structure
+A userscript cannot provide reliable browser-level network filtering or intercept every server-side redirect. It also does not defeat CAPTCHA, authentication, license checks, paid access, or server-side verification. Use a dedicated Firefox content blocker for network-level ad blocking.
 
-```
-no-adlink-userscript/
-├── README.md
-├── LICENSE
-└── src/
-    └── no-adlink.user.js
-```
+## Resolver development
 
-## Development notes
-
-The supplied reference scripts cover different mechanisms and have different licenses and trust assumptions. This project implements its own small core rather than pasting entire third-party scripts or silently calling unrelated bypass APIs. Add host-specific resolvers as isolated, reviewed modules with test URLs and expected results.
+Add each host-specific resolver as an isolated module with a safe test URL and expected destination. Prefer transparent URL extraction and user confirmation. Do not auto-click hidden controls, skip human verification, or trust arbitrary page scripts.
