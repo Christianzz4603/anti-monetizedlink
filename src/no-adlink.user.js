@@ -1,14 +1,18 @@
 // ==UserScript==
 // @name         Anti Monetized Link
 // @namespace    https://github.com/Christianzz4603/anti-monetizedlink
-// @version      0.4.0
-// @description  Monetized shortlink recognition, safe destination extraction, ad cleanup and popup protection.
+// @version      0.4.1
+// @description  Detect monetized shortlinks and show possible destination URLs for manual review.
 // @author       Christianzz4603
+// @license      MIT
+// @homepageURL  https://github.com/Christianzz4603/anti-monetizedlink
+// @supportURL   https://github.com/Christianzz4603/anti-monetizedlink/issues
 // @match        *://*/*
 // @run-at       document-start
+// @grant        none
+// @noframes
 // @updateURL    https://raw.githubusercontent.com/Christianzz4603/anti-monetizedlink/main/src/no-adlink.user.js
 // @downloadURL  https://raw.githubusercontent.com/Christianzz4603/anti-monetizedlink/main/src/no-adlink.user.js
-// @grant        none
 // ==/UserScript==
 
 /* Bundled domain registry */
@@ -73,7 +77,7 @@
 
 (() => {
   'use strict';
-  const VERSION = '0.4.0';
+  const VERSION = '0.4.1';
   const STORE = 'no-adlink-settings-v3';
   const DEFAULTS = { cosmetic: true, popups: true, preview: true, debug: false };
   let settings = { ...DEFAULTS };

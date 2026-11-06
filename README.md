@@ -2,7 +2,7 @@
 
 A lightweight, single-file Tampermonkey userscript for Firefox and compatible userscript managers. It recognizes known monetized shortlink hosts and surfaces destination candidates for manual review.
 
-## v0.4.0
+## v0.4.1
 
 - Adds bounded generic extraction for meta-refresh redirects, named URL data attributes, URL-like hidden fields, encoded path segments, and URL literals in inline scripts.
 - Ranks candidates by confidence (high, medium, low) and displays the strongest matches first.
@@ -12,6 +12,9 @@ A lightweight, single-file Tampermonkey userscript for Firefox and compatible us
 - Keeps the installable userscript self-contained with no `@require` dependencies.
 
 ## Install
+
+The userscript includes a complete Tampermonkey metadata block: name, namespace, version, description, author, MIT license, homepage, support page, URL match pattern, document-start execution, no special GM grants, frame exclusion, and automatic update/download URLs. It runs on HTTP and HTTPS pages in the top frame. No external `@require` dependencies are used.
+
 
 Import this raw userscript URL in Tampermonkey:
 
@@ -30,3 +33,14 @@ A recognized domain does not guarantee a resolver exists. Generic extraction can
 ## Resolver development
 
 Add host-specific resolvers as isolated, read-only modules during development, then bundle them into the single installable userscript. Do not auto-click hidden controls or treat arbitrary page scripts as trusted instructions.
+
+## Tampermonkey metadata
+
+- `@match *://*/*`: enable on HTTP/HTTPS pages.
+- `@run-at document-start`: install early; DOM-dependent work waits for `DOMContentLoaded`.
+- `@grant none`: use the page's standard browser APIs without privileged userscript APIs.
+- `@noframes`: avoid running inside embedded frames.
+- `@updateURL` and `@downloadURL`: point to the canonical raw file on the `main` branch.
+- `@license MIT`: matches the repository LICENSE file.
+
+The script intentionally has no `@connect`, `@require`, or privileged GM grants because it makes no external resolver API requests and has no external runtime dependencies.
