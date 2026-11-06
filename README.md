@@ -2,14 +2,14 @@
 
 A single-link Tampermonkey userscript for Firefox and compatible userscript managers.
 
-## v0.3.1
+## v0.3.2
 
 - Remote update and download metadata for automatic script updates.
-- Separate domain registry for known monetized shortlink services.
+- Bundled domain registry for known monetized shortlink services.
 - Generic transparent URL extraction from common redirect parameters and Base64 wrappers.
 - Initial host-specific extraction for LinkVIP/Blitly URL wrappers, L4S encoded paths, and plain-URL Pastebin raw pages.
 - On recognized adlink hosts, presents visible outbound page links as choices instead of blindly redirecting.
-- Adds an isolated Work.ink resolver that reads visible outbound links and destination data attributes for user review.
+- Includes an isolated Work.ink resolver that reads visible outbound links and destination data attributes for user review.
 - Fixes outbound-link filtering so it checks each candidate destination host, not the current page host.
 - Cosmetic ad-element cleanup, popup guard, and a floating settings panel.
 - No third-party bypass API receives the user's current URL.
@@ -20,7 +20,7 @@ Import this raw userscript URL in Tampermonkey:
 
 `https://raw.githubusercontent.com/Christianzz4603/anti-monetizedlink/main/src/no-adlink.user.js`
 
-The script uses a small companion registry loaded with `@require`; both files are hosted in this repository.
+The userscript is fully self-contained: the domain registry and Work.ink resolver are bundled into the same `.user.js` file. Tampermonkey only needs this one URL.
 
 ## Work.ink source review
 
@@ -34,4 +34,4 @@ A userscript cannot provide reliable browser-level network filtering or intercep
 
 ## Resolver development
 
-Add each host-specific resolver as an isolated module with a safe test URL and expected destination. Prefer transparent URL extraction and user confirmation. Do not auto-click hidden controls, skip human verification, or trust arbitrary page scripts.
+Add each host-specific resolver as an isolated module during development, then bundle it into the single installable userscript. Prefer transparent URL extraction and user confirmation. Do not auto-click hidden controls, skip human verification, or trust arbitrary page scripts.
