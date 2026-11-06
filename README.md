@@ -18,7 +18,7 @@ A single-link Tampermonkey userscript for Firefox and compatible userscript mana
 
 Import this raw userscript URL in Tampermonkey:
 
-`https://raw.githubusercontent.com/Christianzz4603/no-adlink-userscript/main/src/no-adlink.user.js`
+`https://raw.githubusercontent.com/Christianzz4603/anti-monetizedlink/main/src/no-adlink.user.js`
 
 The script uses a small companion registry loaded with `@require`; both files are hosted in this repository.
 
